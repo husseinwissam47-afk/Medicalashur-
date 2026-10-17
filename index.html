@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متابع تراكمات المحاضرات - المرحلة الثالثة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --burgundy: #58111A;
+            --burgundy-dark: #3B0B11;
+            --burgundy-light: #7A1C28;
+            --autumn-gold: #E5A93C;
+            --autumn-gold-hover: #C98E2A;
+            --gold-light: #FFF8E7;
+            --bg-color: #FBF8F5;
+            --card-bg: #FFFFFF;
+            --text-dark: #2A1810;
+            --completed-green: #2E7D32;
+            --pending-red: #C62828;
+            --border-radius: 14px;
+        }
+        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-color); color: var(--text-dark); padding: 20px 12px 60px; direction: rtl; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
+        .container { max-width: 900px; margin: 0 auto; width: 100%; }
+        header { text-align: center; margin-bottom: 20px; padding: 25px 20px; background: linear-gradient(135deg, var(--burgundy-dark), var(--burgundy)); border-radius: var(--border-radius); box-shadow: 0 8px 20px rgba(59,11,17,.25); color: #fff; border-bottom: 4px solid var(--autumn-gold); }
+        header h1 { font-size: 1.9rem; font-weight: 800; color: var(--autumn-gold); margin-bottom: 6px; text-shadow: 0 2px 4px rgba(0,0,0,.3); }
+        header p { color: #E2D5D5; font-size: .95rem; }
+        .overall-progress-card { background: var(--card-bg); border-radius: var(--border-radius); padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(88,17,26,.06); border: 1px solid #EFE4DC; }
+        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 700; font-size: .95rem; color: var(--burgundy); }
+        .progress-bar-bg { height: 12px; background: #EFE6DD; border-radius: 10px; overflow: hidden; position: relative; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--autumn-gold), #F4C463); width: 0%; transition: width .4s ease; border-radius: 10px; }
+        .modules-nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: thin; scrollbar-color: var(--autumn-gold) transparent; }
+        .module-tab { background: var(--card-bg); color: var(--burgundy); border: 1.5px solid var(--burgundy-light); padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: .9rem; cursor: pointer; white-space: nowrap; transition: all .2s ease; }
+        .module-tab.active, .module-tab:hover { background: var(--burgundy); color: var(--autumn-gold); border-color: var(--burgundy); box-shadow: 0 4px 10px rgba(88,17,26,.15); }
+        .section-title { font-size: 1.25rem; font-weight: 800; color: var(--burgundy); margin: 20px 0 12px; padding-right: 12px; border-right: 4px solid var(--autumn-gold); display: flex; align-items: center; justify-content: space-between; }
+        .subjects-grid { display: flex; flex-direction: column; gap: 12px; }
+        .subject-card { background: var(--card-bg); border-radius: var(--border-radius); box-shadow: 0 2px 8px rgba(88,17,26,.05); overflow: hidden; transition: all .2s ease; border: 1px solid #EFE4DC; }
+        .subject-header { padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; user-select: none; transition: background .2s; gap: 10px; }
+        .subject-header:hover { background: var(--gold-light); }
+        .subject-title { font-size: 1rem; font-weight: 700; color: var(--burgundy-dark); display: flex; align-items: center; gap: 8px; }
+        .subject-stats { display: flex; gap: 8px; font-size: .8rem; flex-wrap: wrap; }
+        .badge { padding: 3px 9px; border-radius: 12px; font-weight: 700; white-space: nowrap; }
+        .badge-completed { background-color: #E8F5E9; color: var(--completed-green); }
+        .badge-pending { background-color: #FFEBEE; color: var(--pending-red); }
+        .lectures-list { display: none; padding: 10px 18px 15px; background: #FCFAF8; border-top: 1px solid #F3EBE4; }
+        .subject-card.active .lectures-list { display: block; }
+        .lecture-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #E5DCD5; gap: 10px; }
+        .lecture-item:last-child { border-bottom: none; }
+        .lecture-info { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .lecture-checkbox { width: 19px; height: 19px; cursor: pointer; accent-color: var(--autumn-gold); border-radius: 4px; flex-shrink: 0; }
+        .lecture-title { font-size: .92rem; color: var(--text-dark); font-weight: 600; }
+        .lecture-title.done { text-decoration: line-through; color: #A09088; }
+        .status-tag { font-size: .75rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+        .status-tag.done { background: #E8F5E9; color: var(--completed-green); }
+        .status-tag.pending { background: #FFEBEE; color: var(--pending-red); }
+        footer { margin-top: 40px; text-align: center; padding: 18px 10px; background: var(--burgundy-dark); border-radius: var(--border-radius); box-shadow: 0 4px 15px rgba(59,11,17,.2); border-top: 3px solid var(--autumn-gold); }
+        footer a { color: var(--autumn-gold); text-decoration: none; font-weight: 800; font-size: 1.05rem; display: inline-flex; align-items: center; gap: 8px; transition: all .2s ease; }
+        footer a:hover { color: #fff; transform: translateY(-2px); }
+        @media (max-width: 600px) { header h1 { font-size: 1.5rem; } .subject-title { font-size: .92rem; } .badge { font-size: .75rem; padding: 2px 7px; } .subject-header { align-items: flex-start; flex-direction: column; } .lecture-item { align-items: flex-start; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📚 متابع تراكمات - المرحلة الثالثة</h1>
+        <p>تأشير المحاضرات وحساب التراكم تلقائياً لكل مادة وموديول</p>
+    </header>
+    <div class="overall-progress-card">
+        <div class="progress-header"><span>نسبة الإنجاز الكلية للمرحلة:</span><span id="overallPercent">0%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="overallFill"></div></div>
+    </div>
+    <div class="modules-nav">
+        <button class="module-tab active" onclick="switchModule('id')">🦠 ID | Bacteriology</button>
+        <button class="module-tab" onclick="switchModule('nt')">🥗 NT | Nutrition</button>
+        <button class="module-tab" onclick="switchModule('rm')">📊 RM | Research</button>
+        <button class="module-tab" onclick="switchModule('ca')">🩺 CA | Clinical</button>
+    </div>
+    <div id="modulesContainer"></div>
+</div>
+<footer><a href="https://t.me/medicinewithfunny" target="_blank" rel="noopener noreferrer">مشغل بواسطة: طب 🩺 وسد الباب🚪</a></footer>
+<script>
+const makeList = (prefix, count) => Array.from({length: count}, (_, i) => `${prefix}-${i + 1}`);
+const modulesData = {
+ id: {title:'ID | Infectious Diseases - Bacteriology',sections:[
+  {name:'📚 النظري',subjects:[
+   {id:'id_micro',name:'Microbiology (النظري)',lectures:makeList('Lec',21)},
+   {id:'id_medicine',name:'Medicine (النظري)',lectures:makeList('Lec',11)},
+   {id:'id_community',name:'Community Medicine (النظري)',lectures:makeList('Lec',10)},
+   {id:'id_surgery',name:'Surgery (النظري)',lectures:makeList('Lec',1)}]},
+  {name:'🔬 العملي & TBL',subjects:[
+   {id:'id_micro_prac',name:'Microbiology - Practical',lectures:makeList('P',5)},
+   {id:'id_comm_tbl',name:'Community - TBL & Lab',lectures:makeList('TBL',1)},
+   {id:'id_med_tbl',name:'Medicine - TBL',lectures:makeList('TBL',1)},
+   {id:'id_surg_tbl',name:'Surgery - TBL',lectures:makeList('TBL',3)}]}]},
+ nt: {title:'NT | Nutrition',sections:[
+  {name:'📚 النظري',subjects:[
+   {id:'nt_comm',name:'Community Medicine (النظري)',lectures:makeList('Lec',11)},
+   {id:'nt_biochem',name:'Biochemistry (النظري)',lectures:makeList('Lec',9)},
+   {id:'nt_medicine',name:'Medicine (النظري)',lectures:makeList('Lec',10)},
+   {id:'nt_physio',name:'Physiology (النظري)',lectures:makeList('Lec',2)},
+   {id:'nt_surgery',name:'Surgery (النظري)',lectures:makeList('Lec',5)}]},
+  {name:'🔬 العملي & TBL',subjects:[
+   {id:'nt_comm_tbl',name:'Community Medicine - TBL',lectures:makeList('TBL',1)},
+   {id:'nt_biochem_tbl',name:'Biochemistry - TBL',lectures:makeList('TBL',2)},
+   {id:'nt_med_tbl',name:'Medicine - TBL',lectures:makeList('TBL',1)},
+   {id:'nt_surg_tbl',name:'Surgery - TBL',lectures:makeList('TBL',1)}]}]},
+ rm: {title:'RM | Research Methodology',sections:[
+  {name:'📚 Theoretical',subjects:[{id:'rm_theory',name:'Research Methodology (النظري)',lectures:makeList('Lec',22)}]},
+  {name:'👥 Team Based Learning (TBL)',subjects:[{id:'rm_tbl',name:'Research Methodology - TBL',lectures:makeList('TBL',13)}]}]},
+ ca: {title:'CA | Clinical Attachment',sections:[
+  {name:'📚 النظري',subjects:[{id:'ca_medicine_theory',name:'Medicine (النظري)',lectures:makeList('Lec',12)}]},
+  {name:'🩺 العملي - Medicine',subjects:[
+   {id:'ca_med_history',name:'Medical History',lectures:makeList('S',7)},
+   {id:'ca_med_exam',name:'Clinical Examination',lectures:makeList('Session',5)}]},
+  {name:'🔪 العملي - Surgery (First Semester)',subjects:[
+   {id:'ca_surg_history',name:'Surgical History',lectures:makeList('SS',4)},
+   {id:'ca_surg_exam',name:'Surgical Examination',lectures:makeList('Session',4)}]},
+  {name:'🎯 Practicing Skills Lab (Mastery Exam)',subjects:[
+   {id:'ca_skills_lab',name:'Practicing Skills Lab',lectures:makeList('PS',2).map(s=>s+'-SL')}]}]}
+};
+let activeModule='id', savedState={};
+try { savedState=JSON.parse(localStorage.getItem('stage3_med_progress_num_only'))||{}; } catch(e) { savedState={}; }
+function switchModule(modKey) {
+ activeModule=modKey;
+ document.querySelectorAll('.module-tab').forEach((tab,index)=>tab.classList.toggle('active',Object.keys(modulesData)[index]===modKey));
+ render();
+}
+function calculateOverallProgress() {
+ let totalLectures=0,totalCompleted=0;
+ Object.keys(modulesData).forEach(modKey=>modulesData[modKey].sections.forEach(sec=>sec.subjects.forEach(sub=>{
+  const subState=savedState[sub.id]||{};
+  sub.lectures.forEach((_,idx)=>{totalLectures++;if(subState[idx])totalCompleted++;});
+ })));
+ const percent=totalLectures?Math.round(totalCompleted/totalLectures*100):0;
+ document.getElementById('overallPercent').innerText=`${percent}% (${totalCompleted}/${totalLectures})`;
+ document.getElementById('overallFill').style.width=`${percent}%`;
+}
+function render() {
+ const container=document.getElementById('modulesContainer');container.innerHTML='';
+ const modData=modulesData[activeModule],modEl=document.createElement('div');
+ modData.sections.forEach(sec=>{
+  const secTitle=document.createElement('div');secTitle.className='section-title';secTitle.innerHTML=`<span>${sec.name}</span>`;modEl.appendChild(secTitle);
+  const grid=document.createElement('div');grid.className='subjects-grid';
+  sec.subjects.forEach(sub=>{
+   if(!savedState[sub.id])savedState[sub.id]={};
+   let completedCount=0;sub.lectures.forEach((_,idx)=>{if(savedState[sub.id][idx])completedCount++;});
+   const pendingCount=sub.lectures.length-completedCount,card=document.createElement('div');
+   card.className='subject-card';card.id=`card-${sub.id}`;
+   card.innerHTML=`<div class="subject-header" onclick="toggleCard('${sub.id}')">
+    <div class="subject-title">${sub.name}</div><div class="subject-stats">
+    <span class="badge badge-completed">مكتمل: ${completedCount}</span><span class="badge badge-pending">متراكم: ${pendingCount}</span></div></div>
+    <div class="lectures-list">${sub.lectures.map((lec,idx)=>{
+     const isDone=!!savedState[sub.id][idx];
+     return `<div class="lecture-item"><div class="lecture-info">
+      <input type="checkbox" class="lecture-checkbox" ${isDone?'checked':''} onchange="toggleLecture('${sub.id}',${idx})" aria-label="تأشير ${lec}">
+      <span class="lecture-title ${isDone?'done':''}">${lec}</span></div>
+      <span class="status-tag ${isDone?'done':'pending'}">${isDone?'مكتملة ✓':'متراكمة ✗'}</span></div>`;
+    }).join('')}</div>`;
+   grid.appendChild(card);
+  });modEl.appendChild(grid);
+ });container.appendChild(modEl);calculateOverallProgress();
+}
+function toggleCard(subId) {const card=document.getElementById(`card-${subId}`);if(card)card.classList.toggle('active');}
+function toggleLecture(subId,idx) {
+ if(!savedState[subId])savedState[subId]={};savedState[subId][idx]=!savedState[subId][idx];
+ try {localStorage.setItem('stage3_med_progress_num_only',JSON.stringify(savedState));} catch(e) {console.warn('تعذر حفظ التقدم على هذا المتصفح.',e);}
+ const openCardIds=Array.from(document.querySelectorAll('.subject-card.active')).map(c=>c.id);
+ render();openCardIds.forEach(id=>{const card=document.getElementById(id);if(card)card.classList.add('active');});
+}
+render();
+</script>
+</body>
+</html>
